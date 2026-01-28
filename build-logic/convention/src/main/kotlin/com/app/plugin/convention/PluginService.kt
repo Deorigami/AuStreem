@@ -57,30 +57,35 @@ class PluginService : Plugin<Project> {
                         dependencies {
                             implementation(libs.findLibrary("kermit").get())
                             implementation(libs.findLibrary("kotlinx.coroutines.core").get())
-                            implementation(libs.findLibrary("ktor.client.core").get())
-                            implementation(libs.findLibrary("ktor.client.content.negotiation").get())
-                            implementation(libs.findLibrary("ktor.client.serialization").get())
-                            implementation(libs.findLibrary("ktor.serialization.json").get())
-                            implementation(libs.findLibrary("ktor.client.logging").get())
-                            implementation(libs.findLibrary("kotlinx.serialization.json").get())
+                            implementation(libs.findLibrary("ktor-client-core").get())
+                            implementation(libs.findLibrary("ktor-client-content-negotiation").get())
+                            implementation(libs.findLibrary("ktor-client-serialization").get())
+                            implementation(libs.findLibrary("ktor-serialization-json").get())
+                            implementation(libs.findLibrary("ktor-client-logging").get())
+                            implementation(libs.findLibrary("ktor-client-websockets").get())
+                            implementation(libs.findLibrary("kotlinx-serialization-json").get())
                             implementation(libs.findLibrary("multiplatformSettings").get())
-                            implementation(libs.findLibrary("kotlinx.datetime").get())
-                            implementation(project.dependencies.platform(libs.findLibrary("koin.bom").get()))
-                            implementation(project.dependencies.platform(libs.findLibrary("koin.annotations.bom").get()))
-                            implementation(libs.findLibrary("koin.core").get())
-                            implementation(libs.findLibrary("koin.annotations").get())
+                            implementation(libs.findLibrary("kotlinx-datetime").get())
+                            implementation(project.dependencies.platform(libs.findLibrary("koin-bom").get()))
+                            implementation(project.dependencies.platform(libs.findLibrary("koin-annotations-bom").get()))
+                            implementation(libs.findLibrary("koin-core").get())
+                            implementation(libs.findLibrary("koin-annotations").get())
+                            implementation(libs.findLibrary("ktor-server-core").get())
+                            implementation(libs.findLibrary("ktor-server-cio").get())
+                            implementation(libs.findLibrary("ktor-server-websockets").get())
+                            implementation(libs.findLibrary("ktor-network").get())
                         }
                     }
                     androidMain.dependencies {
                         implementation(libs.findLibrary("kotlinx.coroutines.android").get())
-                        implementation(libs.findLibrary("ktor.client.okhttp").get())
+                        implementation(libs.findLibrary("ktor-client-okhttp").get())
                     }
                     jvmMain.dependencies {
                         implementation(libs.findLibrary("kotlinx.coroutines.swing").get())
-                        implementation(libs.findLibrary("ktor.client.okhttp").get())
+                        implementation(libs.findLibrary("ktor-client-okhttp").get())
                     }
                     iosMain.dependencies {
-                        implementation(libs.findLibrary("ktor.client.darwin").get())
+                        implementation(libs.findLibrary("ktor-client-darwin").get())
                     }
                 }
             }
@@ -118,7 +123,7 @@ class PluginService : Plugin<Project> {
                 }
             }
             dependencies {
-                add("kspCommonMainMetadata", libs.findLibrary("koin.annotations.ksp").get())
+                add("kspCommonMainMetadata", libs.findLibrary("koin-annotations-ksp").get())
             }
             configurations.configureEach {
                 exclude("androidx.window.core", "window-core")

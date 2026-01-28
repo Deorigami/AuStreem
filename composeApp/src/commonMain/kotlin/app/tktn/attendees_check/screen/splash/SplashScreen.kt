@@ -15,8 +15,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 object SplashScreen : BaseScreen() {
-    override val pageName: String?
-        get() = this::class.simpleName
 
     @Composable
     override fun ComposeContent() {

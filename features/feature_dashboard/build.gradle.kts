@@ -5,6 +5,7 @@ plugins {
 kotlin.sourceSets.commonMain {
     dependencies {
         implementation(project(":cores:core_feature"))
+        implementation(project(":cores:core_service"))
     }
 }
 

@@ -66,6 +66,10 @@ kotlin {
                 implementation(libs.ktor.client.serialization)
                 implementation(libs.ktor.serialization.json)
                 implementation(libs.ktor.client.logging)
+                implementation(libs.ktor.client.websockets)
+                implementation(libs.ktor.server.core)
+                implementation(libs.ktor.server.cio)
+                implementation(libs.ktor.server.websockets)
                 implementation(libs.androidx.lifecycle.viewmodel)
                 implementation(libs.androidx.lifecycle.runtime)
                 implementation(libs.androidx.navigation.compose)
@@ -89,6 +93,7 @@ kotlin {
                 implementation(project(":features:feature_dashboard"))
                 implementation(project(":features:feature_util"))
                 implementation(project(":cores:core_feature"))
+                implementation(project(":cores:core_service"))
             }
         }
 

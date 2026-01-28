@@ -67,40 +67,45 @@ class PluginFeature : Plugin<Project> {
                             implementation(compose.components.uiToolingPreview)
                             implementation(libs.findLibrary("kermit").get())
                             implementation(libs.findLibrary("kotlinx.coroutines.core").get())
-                            implementation(libs.findLibrary("ktor.client.core").get())
+                            implementation(libs.findLibrary("ktor-client-core").get())
                             implementation(
-                                libs.findLibrary("ktor.client.content.negotiation").get()
+                                libs.findLibrary("ktor-client-content-negotiation").get()
                             )
-                            implementation(libs.findLibrary("ktor.client.serialization").get())
+                            implementation(libs.findLibrary("ktor-client-serialization").get())
                             implementation(libs.findLibrary("materialKolor").get())
-                            implementation(libs.findLibrary("ktor.serialization.json").get())
-                            implementation(libs.findLibrary("ktor.client.logging").get())
-                            implementation(libs.findLibrary("androidx.lifecycle.viewmodel").get())
-                            implementation(libs.findLibrary("androidx.lifecycle.runtime").get())
-                            implementation(libs.findLibrary("androidx.navigation.compose").get())
-                            implementation(libs.findLibrary("kotlinx.serialization.json").get())
+                            implementation(libs.findLibrary("ktor-serialization-json").get())
+                            implementation(libs.findLibrary("ktor-client-logging").get())
+                            implementation(libs.findLibrary("ktor-client-websockets").get())
+                            implementation(libs.findLibrary("ktor-server-core").get())
+                            implementation(libs.findLibrary("ktor-server-cio").get())
+                            implementation(libs.findLibrary("ktor-server-websockets").get())
+                            implementation(libs.findLibrary("ktor-network").get())
+                            implementation(libs.findLibrary("androidx-lifecycle-viewmodel").get())
+                            implementation(libs.findLibrary("androidx-lifecycle-runtime").get())
+                            implementation(libs.findLibrary("androidx-navigation-compose").get())
+                            implementation(libs.findLibrary("kotlinx-serialization-json").get())
                             implementation(libs.findLibrary("coil").get())
-                            implementation(libs.findLibrary("coil.network.ktor").get())
+                            implementation(libs.findLibrary("coil-network-ktor").get())
                             implementation(libs.findLibrary("multiplatformSettings").get())
                             implementation(libs.findLibrary("kotlinx.datetime").get())
                             implementation(
                                 project.dependencies.platform(
-                                    libs.findLibrary("koin.bom").get()
+                                    libs.findLibrary("koin-bom").get()
                                 )
                             )
                             implementation(
                                 project.dependencies.platform(
-                                    libs.findLibrary("koin.annotations.bom").get()
+                                    libs.findLibrary("koin-annotations-bom").get()
                                 )
                             )
-                            implementation(libs.findLibrary("koin.core").get())
-                            implementation(libs.findLibrary("koin.compose").get())
-                            implementation(libs.findLibrary("koin.compose.viewmodel").get())
-                            implementation(libs.findLibrary("koin.annotations").get())
-                            implementation(libs.findLibrary("compose.adaptive").get())
-							implementation(libs.findLibrary("androidx.navigation3.ui").get())
-							implementation(libs.findLibrary("androidx.navigation3.event").get())
-							implementation(libs.findLibrary("androidx.navigation3.material3.adaptive").get())
+                            implementation(libs.findLibrary("koin-core").get())
+                            implementation(libs.findLibrary("koin-compose").get())
+                            implementation(libs.findLibrary("koin-compose-viewmodel").get())
+                            implementation(libs.findLibrary("koin-annotations").get())
+                            implementation(libs.findLibrary("compose-adaptive").get())
+							implementation(libs.findLibrary("androidx-navigation3-ui").get())
+							implementation(libs.findLibrary("androidx-navigation3-event").get())
+							implementation(libs.findLibrary("androidx-navigation3-material3-adaptive").get())
                         }
                     }
                     val mobileMain = create("mobileMain").apply {
@@ -114,20 +119,20 @@ class PluginFeature : Plugin<Project> {
                         dependsOn(mobileMain)
                         dependencies {
                             implementation(compose.uiTooling)
-                            implementation(libs.findLibrary("androidx.activityCompose").get())
+                            implementation(libs.findLibrary("androidx-activityCompose").get())
                             implementation(libs.findLibrary("kotlinx.coroutines.android").get())
-                            implementation(libs.findLibrary("ktor.client.okhttp").get())
+                            implementation(libs.findLibrary("ktor-client-okhttp").get())
                         }
                     }
                     jvmMain.dependencies {
                         implementation(compose.desktop.currentOs)
                         implementation(libs.findLibrary("kotlinx.coroutines.swing").get())
-                        implementation(libs.findLibrary("ktor.client.okhttp").get())
+                        implementation(libs.findLibrary("ktor-client-okhttp").get())
                     }
                     iosMain.configure {
                         dependsOn(mobileMain)
                         dependencies {
-                            implementation(libs.findLibrary("ktor.client.darwin").get())
+                            implementation(libs.findLibrary("ktor-client-darwin").get())
                         }
                     }
                 }
@@ -166,7 +171,7 @@ class PluginFeature : Plugin<Project> {
                 }
             }
             dependencies {
-                add("kspCommonMainMetadata", libs.findLibrary("koin.annotations.ksp").get())
+                add("kspCommonMainMetadata", libs.findLibrary("koin-annotations-ksp").get())
             }
             configurations.configureEach {
                 exclude("androidx.window.core", "window-core")

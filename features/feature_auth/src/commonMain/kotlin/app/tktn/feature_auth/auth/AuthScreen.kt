@@ -9,8 +9,6 @@ import org.koin.android.annotation.KoinViewModel
 
 @Serializable
 object AuthScreen : BaseScreen() {
-    override val pageName: String?
-        get() = this::class.simpleName
 
     @Composable
     override fun ComposeContent() {
