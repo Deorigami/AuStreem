@@ -2,6 +2,9 @@ package app.tktn.core_service.network
 
 import kotlinx.serialization.Serializable
 
+const val DISCOVERY_PORT = 2525
+const val UDP_PORT = 59101
+
 @Serializable
 data class DiscoveredServer(
     val id: String = "",

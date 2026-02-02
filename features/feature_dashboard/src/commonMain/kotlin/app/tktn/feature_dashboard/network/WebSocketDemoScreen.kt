@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -36,6 +38,9 @@ import app.tktn.core_feature.base.BaseScreen
 import app.tktn.core_service.network.DiscoveryService
 import app.tktn.core_service.network.WebSocketClient
 import app.tktn.core_service.network.WebSocketServer
+import app.tktn.core_service.network.getLocalIpAddress
+import app.tktn.core_service.network.DISCOVERY_PORT
+import app.tktn.core_service.network.UDP_PORT
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
@@ -49,10 +54,8 @@ object WebSocketDemoScreen : BaseScreen() {
 		val discovery = koinInject<DiscoveryService>()
 		val scope = rememberCoroutineScope()
 
-		var serverPort by remember { mutableStateOf("2525") }
 		var serverName by remember { mutableStateOf("Device ${(100..999).random()}") }
 		var clientHost by remember { mutableStateOf("10.0.2.2") }
-		var clientPort by remember { mutableStateOf("2525") }
 		var messageToSend by remember { mutableStateOf("") }
 
 		val serverMessages by server.receivedMessages.collectAsState("")
@@ -87,12 +90,22 @@ object WebSocketDemoScreen : BaseScreen() {
 		) { padding ->
 			Column(
 				modifier = Modifier.fillMaxSize().padding(padding)
+					.verticalScroll(rememberScrollState())
 					.padding(16.dp)
 			) {
 				Text(
 					"WebSocket Demo",
 					style = MaterialTheme.typography.headlineMedium
 				)
+				
+				val myIp = remember { getLocalIpAddress() }
+				if (myIp != null) {
+					Text(
+						"Your IP: $myIp",
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.primary
+					)
+				}
 
 				Spacer(modifier = Modifier.height(16.dp))
 
@@ -133,14 +146,11 @@ object WebSocketDemoScreen : BaseScreen() {
 										onClick = {
 											clientHost =
 												discovered.host
-											clientPort =
-												discovered.port.toString()
 											scope.launch {
 												try {
 													client.connect(
 														clientHost,
-														clientPort.toIntOrNull()
-															?: 2525
+														DISCOVERY_PORT
 													)
 												} catch (e: Exception) {
 													snackbarHostState.showSnackbar(
@@ -157,7 +167,7 @@ object WebSocketDemoScreen : BaseScreen() {
 						}
 					}
 				} else if (!isServerRunning && !isClientConnected) {
-					// Networking Tip for Emulators
+					// Networking Guide
 					Card(
 						modifier = Modifier.fillMaxWidth()
 							.padding(vertical = 8.dp),
@@ -167,13 +177,14 @@ object WebSocketDemoScreen : BaseScreen() {
 					) {
 						Column(modifier = Modifier.padding(12.dp)) {
 							Text(
-								"💡 Emulator Discovery Tip",
+								"🌐 Real Device Discovery",
 								style = MaterialTheme.typography.labelLarge,
 								color = MaterialTheme.colorScheme.primary
 							)
 							Text(
-								"If using two emulators, run this to bridge them:\n" +
-										"adb -s <emulator-id> reverse udp:59101 udp:59101",
+								"1. Ensure both devices are on the SAME Wi-Fi network.\n" +
+								"2. Disable Windows Firewall or allow incoming port $UDP_PORT (UDP) and $DISCOVERY_PORT (TCP).\n" +
+								"3. If discovery fails, enter the host's IP manually below.",
 								style = MaterialTheme.typography.bodySmall
 							)
 						}
@@ -192,49 +203,41 @@ object WebSocketDemoScreen : BaseScreen() {
 						)
 
 						if (!isServerRunning) {
-							OutlinedTextField(
-								value = serverName,
-								onValueChange = { serverName = it },
-								label = { Text("Server Name") },
-								modifier = Modifier.fillMaxWidth()
-							)
 							Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
 								OutlinedTextField(
-									value = serverPort,
-									onValueChange = {
-										serverPort = it
-									},
-									label = { Text("Port") },
+									value = serverName,
+									onValueChange = { serverName = it },
+									label = { Text("Server Name") },
 									modifier = Modifier.weight(1f)
 								)
 								Spacer(modifier = Modifier.width(8.dp))
 								Button(
 									enabled = !isClientConnected,
 									onClick = {
-									val port =
-										serverPort.toIntOrNull()
-											?: 2525
 									server.start(
 										discovery.selfId,
-										serverName,
-										port
+										serverName
 									)
 									discovery.startBroadcasting(
-										serverName,
-										port
+										serverName
 									)
 								}) {
 									Text("Start")
 								}
 							}
+							Text(
+								"Server will run on fixed port $DISCOVERY_PORT",
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.outline
+							)
 						} else {
 							Column(modifier = Modifier.fillMaxWidth()) {
 								Text(
-									"Status: Running as \"$serverName\"",
+									"Status: Playing as \"$serverName\"",
 									color = MaterialTheme.colorScheme.primary
 								)
 								Text(
-									"Port: $serverPort",
+									"Port: $DISCOVERY_PORT",
 									style = MaterialTheme.typography.bodySmall
 								)
 								Spacer(modifier = Modifier.height(8.dp))
@@ -268,25 +271,14 @@ object WebSocketDemoScreen : BaseScreen() {
 							)
 
 							if (!isClientConnected) {
-								Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-									OutlinedTextField(
-										value = clientHost,
-										onValueChange = {
-											clientHost = it
-										},
-										label = { Text("Host") },
-										modifier = Modifier.weight(1f)
-									)
-									Spacer(modifier = Modifier.width(8.dp))
-									OutlinedTextField(
-										value = clientPort,
-										onValueChange = {
-											clientPort = it
-										},
-										label = { Text("Port") },
-										modifier = Modifier.weight(0.5f)
-									)
-								}
+								OutlinedTextField(
+									value = clientHost,
+									onValueChange = {
+										clientHost = it
+									},
+									label = { Text("Host (IP Address)") },
+									modifier = Modifier.fillMaxWidth()
+								)
 								Spacer(modifier = Modifier.height(8.dp))
 								Button(
 									modifier = Modifier.fillMaxWidth(),
@@ -295,8 +287,7 @@ object WebSocketDemoScreen : BaseScreen() {
 											try {
 												client.connect(
 													clientHost,
-													clientPort.toIntOrNull()
-														?: 2525
+													DISCOVERY_PORT
 												)
 											} catch (e: Exception) {
 												snackbarHostState.showSnackbar(

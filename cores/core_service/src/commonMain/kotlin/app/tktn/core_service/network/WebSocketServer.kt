@@ -28,18 +28,18 @@ class WebSocketServer {
     private val _isRunning = MutableStateFlow(false)
     val isRunning: StateFlow<Boolean> = _isRunning
 
-    private var currentPort: Int = 8080
+    private var currentPort: Int = DISCOVERY_PORT
     private var currentName: String = "Server"
     var serverId: String? = null
         private set
 
-    fun start(id: String, name: String, port: Int = 8080) {
+    fun start(id: String, name: String) {
         if (server != null) return
         this.currentName = name
-        this.currentPort = port
+        this.currentPort = DISCOVERY_PORT
         this.serverId = id
         
-        server = embeddedServer(CIO, port = port) {
+        server = embeddedServer(CIO, port = DISCOVERY_PORT, host = "0.0.0.0") {
             install(WebSockets)
             routing {
                 get("/discovery") {
@@ -70,7 +70,7 @@ class WebSocketServer {
             }
         }.start(wait = false)
         _isRunning.value = true
-        Logger.d("WebSocketServer") { "Server started on port $port" }
+        Logger.d("WebSocketServer") { "Server started on port" }
     }
 
     suspend fun broadcast(message: String) {
