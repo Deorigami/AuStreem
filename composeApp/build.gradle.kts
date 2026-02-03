@@ -126,11 +126,11 @@ kotlin {
 
 android {
     namespace = "app.tktn.attendees_check"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
 
         applicationId = "app.tktn.attendees_check.androidApp"
         versionCode = 1
@@ -148,12 +148,18 @@ dependencies {
 
 compose.desktop {
     application {
+		jvmArgs.addAll(listOf("-XX:+IgnoreUnrecognizedVMOptions", "--enable-native-access=ALL-UNNAMED"))
+
         mainClass = "MainKt"
 
+        buildTypes.release.proguard {
+            isEnabled.set(false)
+        }
+
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "Streem"
-            packageVersion = "1.0.0"
+            targetFormats(TargetFormat.Msi)
+            packageName = "AuStreem"
+            packageVersion = "0.0.1"
 
             linux {
                 iconFile.set(project.file("desktopAppIcons/LinuxIcon.png"))

@@ -1,4 +1,4 @@
-rootProject.name = "Attendees-Check-App"
+rootProject.name = "AuStreem"
 
 pluginManagement {
     repositories {
