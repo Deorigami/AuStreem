@@ -170,8 +170,15 @@ object WebSocketDemoScreen : BaseScreen() {
 							// Audio Streaming Toggle
 							Button(
 								onClick = {
-									if (isStreaming) audioService.stopStreaming()
-									else audioService.startStreaming()
+									if (isStreaming) {
+										app.tktn.core_service.audio.PlatformAudioHook.stopService {
+											audioService.stopStreaming()
+										}
+									} else {
+										app.tktn.core_service.audio.PlatformAudioHook.startService {
+											audioService.startStreaming()
+										}
+									}
 								},
 								modifier = Modifier.fillMaxWidth(),
 								colors = ButtonDefaults.buttonColors(
@@ -242,185 +249,182 @@ object WebSocketDemoScreen : BaseScreen() {
 							}
 							Spacer(modifier = Modifier.height(16.dp))
 							
-							// Audio Routing Mode Selection
-							var routingMode by remember { mutableStateOf("speaker") } // "speaker" or "mic"
+							androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+							
+							Text("Audio Output Control", style = MaterialTheme.typography.titleMedium)
+							Spacer(modifier = Modifier.height(8.dp))
+							
 							val devices = remember { audioService.getAvailableDevices() }
-							var selectedDevice by remember { mutableStateOf<String?>(null) }
-							var showDeviceDialog by remember { mutableStateOf(false) }
+							var activeMode by remember { mutableStateOf<String?>(null) } // "speaker" or "mic"
+							var showDeviceList by remember { mutableStateOf(false) }
+							var showSpeakerList by remember { mutableStateOf(false) }
+							var isMonitoring by remember { mutableStateOf(false) }
 
-							Text("Routing Mode:", style = MaterialTheme.typography.labelSmall)
-							Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-								Button(
-									onClick = { 
-										routingMode = "speaker" 
-										selectedDevice = null 
-										audioService.setTargetDevice(null)
-									},
-									modifier = Modifier.weight(1f),
-									colors = ButtonDefaults.buttonColors(
-										containerColor = if (routingMode == "speaker") MaterialTheme.colorScheme.primary 
-														else MaterialTheme.colorScheme.surfaceVariant,
-										contentColor = if (routingMode == "speaker") MaterialTheme.colorScheme.onPrimary 
-														else MaterialTheme.colorScheme.onSurfaceVariant
-									)
-								) {
-									Text("🔊 Speaker")
-								}
-								Spacer(modifier = Modifier.width(8.dp))
-								Button(
-									onClick = { 
-										routingMode = "mic"
-										// Auto-select cable if available
-										val cable = devices.find { it.contains("Cable", ignoreCase = true) || it.contains("Virtual", ignoreCase = true) }
-										if (cable != null) {
-											selectedDevice = cable
-											audioService.setTargetDevice(cable)
-										} else {
-											showDeviceDialog = true
-										}
-									},
-									modifier = Modifier.weight(1f),
-									colors = ButtonDefaults.buttonColors(
-										containerColor = if (routingMode == "mic") MaterialTheme.colorScheme.primary 
-														else MaterialTheme.colorScheme.surfaceVariant,
-										contentColor = if (routingMode == "mic") MaterialTheme.colorScheme.onPrimary 
-														else MaterialTheme.colorScheme.onSurfaceVariant
-									)
-								) {
-									Text("🎤 Virtual Mic")
-								}
-							}
-
-							if (routingMode == "mic") {
+							if (isReceiving) {
+								// Active Stream State
 								Card(
-									modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-									colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+									colors = CardDefaults.cardColors(
+										containerColor = if (activeMode == "mic") MaterialTheme.colorScheme.primaryContainer 
+														else MaterialTheme.colorScheme.secondaryContainer
+									),
+									modifier = Modifier.fillMaxWidth()
 								) {
-									Column(modifier = Modifier.padding(12.dp)) {
-										Text("1. Feed the Virtual Cable", style = MaterialTheme.typography.titleSmall)
+									Column(modifier = Modifier.padding(16.dp), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
 										Text(
-											"The app must 'play' your voice into the Virtual Cable's input to feed the microphone.",
-											style = MaterialTheme.typography.bodySmall
+											if (activeMode == "mic") "🎤 Broadcasting to Virtual Mic" else "🔊 Playing on Speakers",
+											style = MaterialTheme.typography.titleMedium,
+											fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
 										)
 										
-										Spacer(modifier = Modifier.height(8.dp))
-										Text("Selected Input Bridge:", style = MaterialTheme.typography.labelSmall)
-										Text(
-											selectedDevice ?: "No Virtual Cable Selected", 
-											fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-											color = if (selectedDevice == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onPrimaryContainer
-										)
+										val currentDevice = remember(activeMode) { 
+											if (activeMode == "mic") devices.find { it.contains("Cable", true) || it.contains("Virtual", true) }?.substringBefore("|") ?: "Unknown"
+											else "System Default"
+										}
+										Text("Output: $currentDevice", style = MaterialTheme.typography.bodySmall)
+
+										Spacer(modifier = Modifier.height(16.dp))
 										
 										Button(
-											onClick = { showDeviceDialog = true },
-											modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-											colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+											onClick = { 
+												audioService.stopReceiving() 
+												activeMode = null
+											},
+											colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+											modifier = Modifier.fillMaxWidth()
 										) {
-											Text(if (selectedDevice == null) "Select Virtual Cable" else "Change Virtual Cable")
+											Text("⏹ Stop Audio Stream")
 										}
-
-										Spacer(modifier = Modifier.height(12.dp))
-										androidx.compose.material3.HorizontalDivider()
-										Spacer(modifier = Modifier.height(12.dp))
-
-										Text("2. Windows Configuration", style = MaterialTheme.typography.titleSmall)
-										Text(
-											"Now, in Windows or Discord, select 'CABLE Output' as your Microphone.",
-											style = MaterialTheme.typography.bodySmall
-										)
 										
-										if (selectedDevice == null) {
+										if (activeMode == "mic") {
+											Spacer(modifier = Modifier.height(16.dp))
+											Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+												Text("Hear myself (Monitor)", style = MaterialTheme.typography.bodySmall)
+												Spacer(modifier = Modifier.width(8.dp))
+												androidx.compose.material3.Switch(
+													checked = isMonitoring,
+													onCheckedChange = { 
+														isMonitoring = it
+														audioService.setMonitoring(it)
+													}
+												)
+											}
+											Spacer(modifier = Modifier.height(8.dp))
 											Text(
-												"⚠️ Note: You need VB-CABLE or similar installed to see this option.",
+												"💡 In Windows/Discord, set Input Device to 'CABLE Output' or 'Virtual Mic'",
 												style = MaterialTheme.typography.bodySmall,
-												color = MaterialTheme.colorScheme.error,
-												modifier = Modifier.padding(top = 4.dp)
+												modifier = Modifier.padding(4.dp)
 											)
 										}
 									}
 								}
 							} else {
-								Card(
-									modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-									colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-								) {
-									Column(modifier = Modifier.padding(12.dp)) {
-										Text("🔊 Speaker Monitoring", style = MaterialTheme.typography.titleSmall)
-										Text(
-											"Voice will play directly through your chosen PC speaker.",
-											style = MaterialTheme.typography.bodySmall
+								// Idle State - Choose Mode
+								Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+									// Speaker Button
+									Button(
+										onClick = {
+											showSpeakerList = !showSpeakerList
+											showDeviceList = false // Close the other list
+										},
+										modifier = Modifier.weight(1f),
+										colors = ButtonDefaults.buttonColors(
+											containerColor = if (showSpeakerList) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+											contentColor = if (showSpeakerList) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
 										)
-										
-										Spacer(modifier = Modifier.height(8.dp))
-										Text("Active Speaker:", style = MaterialTheme.typography.labelSmall)
-										Text(
-											selectedDevice ?: "System Default Output", 
-											fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-										)
-										
-										Button(
-											onClick = { showDeviceDialog = true },
-											modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-											colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-										) {
-											Text("Change Speaker")
+									) {
+										Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+											Text("🔊 Speaker")
+											Text("(Select Output)", style = MaterialTheme.typography.labelSmall)
 										}
 									}
-								}
-							}
-
-							if (showDeviceDialog) {
-								androidx.compose.ui.window.Dialog(onDismissRequest = { showDeviceDialog = false }) {
-									Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-										Column(modifier = Modifier.padding(16.dp)) {
-											Text("Select Virtual/Output Device", style = MaterialTheme.typography.titleMedium)
-											Spacer(modifier = Modifier.height(8.dp))
-											LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
-												items(devices) { device ->
-													Button(
-														onClick = { 
-															selectedDevice = device
-															audioService.setTargetDevice(device)
-															showDeviceDialog = false 
-														},
-														modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-													) { Text(device) }
-												}
+									
+									// Virtual Mic Button
+									Button(
+										onClick = {
+											// Auto-detect Cable
+											val cable = devices.find { it.contains("Cable", true) || it.contains("Virtual", true) || it.contains("AudioRelay", true) }
+											
+											if (cable != null) {
+												audioService.setTargetDevice(cable)
+												val host = connectedHost?.substringBefore(':') ?: clientHost
+												audioService.startReceiving(host, DISCOVERY_PORT)
+												activeMode = "mic"
+											} else {
+												// Fallback to manual selection
+												showDeviceList = !showDeviceList
+												showSpeakerList = false
 											}
+										},
+										modifier = Modifier.weight(1f),
+										colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+									) {
+										Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+											Text("🎤 Virtual Mic")
+											Text("(VB-Cable)", style = MaterialTheme.typography.labelSmall)
+										}
+									}
+								}
+								
+								if (showSpeakerList) {
+									Spacer(modifier = Modifier.height(8.dp))
+									Text("Select Speaker Output:", style = MaterialTheme.typography.labelSmall)
+									LazyColumn(modifier = Modifier.heightIn(max = 200.dp).fillMaxWidth()) {
+										item {
+											Button(
+												onClick = {
+													audioService.setTargetDevice(null)
+													val host = connectedHost?.substringBefore(':') ?: clientHost
+													audioService.startReceiving(host, DISCOVERY_PORT)
+													activeMode = "speaker"
+													showSpeakerList = false
+												},
+												modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+												colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+											) { Text("System Default Device") }
+										}
+										items(devices) { device ->
+											Button(
+												onClick = {
+													audioService.setTargetDevice(device)
+													val host = connectedHost?.substringBefore(':') ?: clientHost
+													audioService.startReceiving(host, DISCOVERY_PORT)
+													activeMode = "speaker"
+													showSpeakerList = false
+												},
+												modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+											) { Text(device.take(40)) }
+										}
+									}
+								}
+								
+								if (showDeviceList) {
+									Spacer(modifier = Modifier.height(8.dp))
+									Text("⚠️ Clean VB-CABLE not found. Select manually:", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+									LazyColumn(modifier = Modifier.heightIn(max = 200.dp).fillMaxWidth()) {
+										items(devices) { device ->
+											Button(
+												onClick = {
+													audioService.setTargetDevice(device)
+													val host = connectedHost?.substringBefore(':') ?: clientHost
+													audioService.startReceiving(host, DISCOVERY_PORT)
+													activeMode = "mic"
+													showDeviceList = false
+												},
+												modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+											) { Text(device.take(40)) }
 										}
 									}
 								}
 							}
 
-							Spacer(modifier = Modifier.height(16.dp))
-							
-							// Audio Receiving Toggle
-							Button(
-								onClick = {
-									if (isReceiving) audioService.stopReceiving()
-									else {
-										val host = connectedHost?.substringBefore(':') ?: clientHost
-										audioService.startReceiving(host, DISCOVERY_PORT)
-									}
-								},
-								modifier = Modifier.fillMaxWidth(),
-								colors = ButtonDefaults.buttonColors(
-									containerColor = if (isReceiving) MaterialTheme.colorScheme.error 
-													else MaterialTheme.colorScheme.primary
-								)
-							) {
-								val icon = if (routingMode == "mic") "🎤" else "🔊"
-								Text(if (isReceiving) "� Stop Stream" else "$icon Start Receiving")
-							}
-							
-							Spacer(modifier = Modifier.height(8.dp))
+							Spacer(modifier = Modifier.height(24.dp))
 							Button(
 								onClick = { 
 									audioService.stopReceiving()
 									scope.launch { client.disconnect() } 
 								},
 								modifier = Modifier.fillMaxWidth(),
-								colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+								colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.outline)
 							) {
 								Text("Disconnect")
 							}

@@ -54,4 +54,9 @@ expect class AudioPlayer() {
      * Get names of available output devices.
      */
     fun getAvailableDevices(): List<String>
+    
+    /**
+     * Toggle monitoring (hearing yourself locally).
+     */
+    fun setMonitoring(enabled: Boolean)
 }

@@ -24,6 +24,7 @@ actual class AudioRecorder {
 
 actual class AudioPlayer {
     private var sourceLine: SourceDataLine? = null
+    private var monitoringLine: SourceDataLine? = null
     
     private val _isPlaying = MutableStateFlow(false)
     actual val isPlaying: StateFlow<Boolean> = _isPlaying
@@ -37,6 +38,31 @@ actual class AudioPlayer {
         true,  // signed
         false  // little endian
     )
+    
+    // Toggle for monitoring (hearing yourself)
+    actual fun setMonitoring(enabled: Boolean) {
+        if (enabled && monitoringLine == null) {
+            try {
+                Logger.d("AudioPlayer") { "Starting Monitoring (Speaker)..." }
+                val info = DataLine.Info(SourceDataLine::class.java, audioFormat)
+                // Use default system output for monitoring
+                val line = AudioSystem.getLine(info) as SourceDataLine
+                line.open(audioFormat, AudioConfig.BUFFER_SIZE_BYTES * 2)
+                line.start()
+                monitoringLine = line
+            } catch (e: Exception) {
+                Logger.e("AudioPlayer", e) { "Failed to start monitoring" }
+            }
+        } else if (!enabled && monitoringLine != null) {
+            Logger.d("AudioPlayer") { "Stopping Monitoring..." }
+            try {
+                monitoringLine?.stop()
+                monitoringLine?.flush()
+                monitoringLine?.close()
+            } catch (e: Exception) {}
+            monitoringLine = null
+        }
+    }
     
     actual fun getAvailableDevices(): List<String> {
         val info = DataLine.Info(SourceDataLine::class.java, audioFormat)
@@ -55,18 +81,26 @@ actual class AudioPlayer {
             val mixers = AudioSystem.getMixerInfo()
             val info = DataLine.Info(SourceDataLine::class.java, audioFormat)
             
+            // Filter mixers to only those that support SourceDataLine (Playback/Output)
+            val playbackMixers = mixers.filter { mixerInfo ->
+                try {
+                    AudioSystem.getMixer(mixerInfo).isLineSupported(info)
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            
             // Priority search for Virtual Mic modes
             val targetMixerInfo = if (targetDeviceName != null) {
                 val cleanName = targetDeviceName?.substringBefore("|") ?: ""
-                mixers.find { it.name == cleanName }
+                playbackMixers.find { it.name == cleanName }
             } else {
                 // Auto-detect common virtual drivers
-                mixers.find { mixer ->
+                playbackMixers.find { mixer ->
                     val name = mixer.name.lowercase()
                     val desc = mixer.description.lowercase()
                     name.contains("audiorelay") || desc.contains("audiorelay") ||
-                    name.contains("virtual") || name.contains("cable") ||
-                    desc.contains("virtual") || desc.contains("cable")
+                    name.contains("virtual") || name.contains("cable")
                 }
             }
             
@@ -79,7 +113,7 @@ actual class AudioPlayer {
             }
             
             sourceLine?.apply {
-                open(audioFormat, AudioConfig.BUFFER_SIZE_BYTES * 6)
+                open(audioFormat, AudioConfig.BUFFER_SIZE_BYTES * 2) // Lower latency (100ms) for Mic usage
                 start()
             }
             
@@ -109,9 +143,21 @@ actual class AudioPlayer {
                     
                     receivedChunkCount++
                     if (receivedChunkCount % 100 == 0) {
-                        Logger.d("AudioPlayer") { "Streaming to Virtual Mic... ($receivedChunkCount packets processed)" }
+                        Logger.d("AudioPlayer") { "Streaming... ($receivedChunkCount packets)" }
                     }
-                    line.write(stereoData, 0, stereoData.size)
+                    
+                    // Blocking write - if buffer is full, this waits (simulating real-time)
+                    val written = line.write(stereoData, 0, stereoData.size)
+                    if (written < stereoData.size) {
+                         Logger.w("AudioPlayer") { "Buffer underrun or partial write!" }
+                    }
+                    
+                    // Write to monitoring line if active (non-blocking relative to main line generally, but write blocks if full)
+                    monitoringLine?.let { monitor ->
+                        if (monitor.isOpen) {
+                             monitor.write(stereoData, 0, stereoData.size)
+                        }
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -127,6 +173,13 @@ actual class AudioPlayer {
                 flush()
                 close()
             }
+            // Close monitoring too
+            monitoringLine?.apply {
+                stop()
+                flush()
+                close()
+            }
+            monitoringLine = null
         } catch (e: Exception) {
             Logger.e("AudioPlayer") { "Error closing: ${e.message}" }
         }

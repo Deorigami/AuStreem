@@ -162,6 +162,10 @@ actual class AudioPlayer {
     actual var targetDeviceName: String? = null
     
     actual fun getAvailableDevices(): List<String> = emptyList()
+
+    actual fun setMonitoring(enabled: Boolean) {
+        // No-op on Android
+    }
     
     actual fun start() {
         // Android client doesn't need audio playback - it's the mic source

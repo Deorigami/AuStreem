@@ -54,6 +54,10 @@ class AudioStreamingService(
         audioPlayer.targetDeviceName = name
     }
     
+    fun setMonitoring(enabled: Boolean) {
+        audioPlayer.setMonitoring(enabled)
+    }
+    
     /**
      * Start streaming audio from the microphone to all connected WebSocket clients.
      * Call this on Android when acting as the audio source.

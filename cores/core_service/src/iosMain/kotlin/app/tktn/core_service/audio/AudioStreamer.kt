@@ -40,4 +40,7 @@ actual class AudioPlayer {
     actual fun stop() {
         _isPlaying.value = false
     }
+
+	actual fun setMonitoring(enabled: Boolean) {
+	}
 }
