@@ -152,7 +152,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "Attendees Check App"
+            packageName = "Streem"
             packageVersion = "1.0.0"
 
             linux {

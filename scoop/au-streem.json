@@ -1,0 +1,19 @@
+{
+    "version": "1.0.0",
+    "description": "AuStreem - Audio Streaming Bridge",
+    "homepage": "https://github.com/USER/au_streem",
+    "license": "Proprietary",
+    "url": "https://github.com/USER/au_streem/releases/download/v1.0.0/AuStreem-1.0.0.msi",
+    "hash": "replace_with_sha256",
+    "bin": "AuStreem.exe",
+    "shortcuts": [
+        [
+            "AuStreem.exe",
+            "AuStreem"
+        ]
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "url": "https://github.com/USER/au_streem/releases/download/v$version/AuStreem-$version.msi"
+    }
+}
