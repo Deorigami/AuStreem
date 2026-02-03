@@ -3,7 +3,7 @@
     "description": "AuStreem - Audio Streaming Bridge",
     "homepage": "https://github.com/Deorigami/AuStreem",
     "license": "Proprietary",
-    "url": "https://github.com/Deorigami/AuStreem/releases/download/v0.0.1/AuStreem-0.0.1.msi",
+    "url": "https://github.com/Deorigami/AuStreem/releases/download/0.0.1/AuStreem-0.0.1.msi",
     "hash": "B8DB01BAF0D545C154C33558C26D5B1EDA473C42F6C291872DCBE2EAEC0B0232",
     "bin": "AuStreem.exe",
     "shortcuts": [

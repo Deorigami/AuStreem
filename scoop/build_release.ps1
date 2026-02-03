@@ -1,4 +1,4 @@
-$version = "0.0.1"
+$version = "1.0.0"
 $appName = "AuStreem"
 $msiPath = "composeApp\build\compose\binaries\main-release\msi\$appName-$version.msi"
 
