@@ -1,0 +1,9 @@
+Subject: Bundling VB-CABLE Driver
+
+1. Download the VB-CABLE driver for Windows from: https://vb-audio.com/Cable/
+2. Extract the ZIP.
+3. Find 'VBCABLE_Setup_x64.exe'.
+4. Copy 'VBCABLE_Setup_x64.exe' into this folder ('composeApp/src/jvmMain/resources').
+5. Rebuild the app.
+
+The app will then detect this file and offer an "Install Driver" button in the UI.

@@ -400,7 +400,22 @@ object WebSocketDemoScreen : BaseScreen() {
 								if (showDeviceList) {
 									Spacer(modifier = Modifier.height(8.dp))
 									Text("⚠️ Clean VB-CABLE not found. Select manually:", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+									
+									val isInstallerReady = remember { app.tktn.core_service.utils.DriverUtils.isInstallerAvailable() }
+									
 									LazyColumn(modifier = Modifier.heightIn(max = 200.dp).fillMaxWidth()) {
+										if (isInstallerReady) {
+											item {
+												Button(
+													onClick = { app.tktn.core_service.utils.DriverUtils.installDriver() },
+													modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+													colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+												) {
+													Text("📦 Install Bundled VB-CABLE Driver")
+												}
+											}
+										}
+										
 										items(devices) { device ->
 											Button(
 												onClick = {

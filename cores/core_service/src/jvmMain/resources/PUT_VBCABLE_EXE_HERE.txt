@@ -1,0 +1,6 @@
+Subject: Bundling VB-CABLE Driver
+
+1. Download the VB-CABLE driver for Windows from: https://vb-audio.com/Cable/
+2. Extract 'VBCABLE_Setup_x64.exe'.
+3. Copy it into this folder ('cores/core_service/src/jvmMain/resources').
+4. Rebuild.
